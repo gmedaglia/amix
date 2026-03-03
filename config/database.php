@@ -43,6 +43,18 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        'testing' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => database_path('database_testing.sqlite'),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'transaction_mode' => 'DEFERRED',
+        ],        
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
