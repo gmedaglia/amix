@@ -100,7 +100,7 @@ class CreateSaleTest extends TestCase
     }
     
     #[Test]
-    public function it_fails_to_creates_sale_when_one_of_the_products_has_insufficient_stock(): void
+    public function it_fails_to_create_sale_when_one_of_the_products_has_insufficient_stock(): void
     {
         $client = Client::factory()->create();
 
@@ -110,6 +110,52 @@ class CreateSaleTest extends TestCase
             'items' => [
                 ['id' => $products->get(0)->id, 'type' => 'PRODUCT', 'quantity' => 5],
                 ['id' => $products->get(1)->id, 'type' => 'PRODUCT', 'quantity' => 2],
+            ]
+        ]);
+
+        $response->assertForbidden();        
+    } 
+    
+    #[Test]
+    public function it_fails_to_create_sale_when_one_of_the_services_depends_on_a_product_with_insufficient_stock(): void
+    {
+        $client = Client::factory()->create();
+
+        $productWithInsufficientStock = Product::factory()->create(['stock' => 3]);
+
+        $serviceOne = Service::factory()->withHighStock()->dependingOnProductStock($productWithInsufficientStock)->create();
+        $serviceTwo = Service::factory()->withHighStock()->create();
+
+        $response = $this->postJson("/api/clients/$client->id/sales", [
+            'items' => [
+                ['id' => $serviceOne->id, 'type' => 'SERVICE', 'quantity' => 4],
+                ['id' => $serviceTwo->id, 'type' => 'SERVICE', 'quantity' => 1],
+            ]
+        ]);
+
+        $response->assertForbidden();        
+    }
+    
+    #[Test]
+    public function it_fails_to_create_sale_when_one_of_the_products_has_already_been_sold_three_times_on_day_to_client(): void
+    {
+        $this->freezeTime();
+
+        $client = Client::factory()->create();
+
+        $product = Product::factory()->withHighStock()->create();
+
+        $previousSaleOne = Sale::factory()->forClient($client)->create();
+        $previousSaleTwo = Sale::factory()->forClient($client)->create();
+        $previousSaleThree = Sale::factory()->forClient($client)->create();
+
+        SaleItem::factory()->for($previousSaleOne, 'sale')->product($product)->create();
+        SaleItem::factory()->for($previousSaleTwo, 'sale')->product($product)->create();
+        SaleItem::factory()->for($previousSaleThree, 'sale')->product($product)->create();
+
+        $response = $this->postJson("/api/clients/$client->id/sales", [
+            'items' => [
+                ['id' => $product->id, 'type' => 'PRODUCT', 'quantity' => 10],
             ]
         ]);
 

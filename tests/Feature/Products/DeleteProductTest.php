@@ -14,7 +14,7 @@ class DeleteProductTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $productDependantServices = Service::factory()->dependingOnProduct($product)->count(3)->create();
+        $productDependantServices = Service::factory()->dependingOnProductStock($product)->count(3)->create();
         $nonProductDependantServices = Service::factory()->count(2)->create();
 
         $response = $this->deleteJson("/api/products/$product->id");
