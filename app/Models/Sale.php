@@ -157,6 +157,8 @@ class Sale extends Model
             ->get()
             ->pluck('items');
 
+        $dailyQuotaForProductForClients = 3;
+
         foreach ($productIds as $productId) {
             $counter = 0;
 
@@ -165,7 +167,7 @@ class Sale extends Model
                     $counter++;
                 }
 
-                if ($counter === 3) {
+                if ($counter === $dailyQuotaForProductForClients) {
                     $saleItem = $saleItemList->firstWhere(fn (SaleItem $saleItem) => $saleItem->saleable->type() === ItemType::Product && $saleItem->saleable->id === $productId);
                     
                     throw new ProductSellQuotaExceededException($saleItem->saleable);
