@@ -32,5 +32,10 @@ class Service extends Saleable
     public function type(): ItemType
     {
         return ItemType::Service;
-    }    
+    }   
+    
+    public function stockDependency(): ?Saleable
+    {
+        return $this->dependable_product;
+    }       
 }

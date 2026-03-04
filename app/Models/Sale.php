@@ -108,12 +108,39 @@ class Sale extends Model
      */
     public function setItems(SupportCollection $items): self
     {
+        $this->validateItemStocks($items);
+        $this->validateItemSellQuotas($items);
+
+        return $this->setRelation('items', $items);
+    }  
+    
+    /**
+     * @param SupportCollection<int, SaleItem> $items
+     */    
+    private function validateItemStocks(SupportCollection $items): void
+    {
         foreach ($items as $saleItem) {
-            if ($saleItem->quantity > $saleItem->saleable->stock) {
+            if (
+                $saleItem->quantity > $saleItem->saleable->stock 
+                || 
+                (
+                    $saleItem->saleable->stockDependency()
+                    &&
+                    $saleItem->quantity > $saleItem->saleable->stockDependency()->stock
+                )
+            ) {
                 throw new InsufficientStockException($saleItem->saleable);
             }
         }
+        
+        return;
+    }
 
+    /**
+     * @param SupportCollection<int, SaleItem> $items
+     */    
+    private function validateItemSellQuotas(SupportCollection $items): void
+    {
         $productIds = $items->filter(fn (SaleItem $saleItem) => $saleItem->saleable->type() === ItemType::Product)->pluck('saleable.id')->all();
 
         $saleItemLists = Sale::query()
@@ -131,12 +158,14 @@ class Sale extends Model
                 }
 
                 if ($counter === 3) {
+                    $saleItem = $saleItemList->firstWhere(fn (SaleItem $saleItem) => $saleItem->saleable->type() === ItemType::Product && $saleItem->saleable->id === $productId);
+                    
                     throw new ProductSellQuotaExceededException($saleItem->saleable);
                 }
             }
         }
 
-        return $this->setRelation('items', $items);
+        return;
     }    
 
     public function calculateTotal(): void

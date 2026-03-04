@@ -22,4 +22,6 @@ abstract class Saleable extends Model
     protected $fillable = ['name', 'description', 'price', 'stock'];
 
     abstract public function type(): ItemType;
+
+    abstract public function stockDependency(): ?Saleable;
 }

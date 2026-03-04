@@ -15,5 +15,10 @@ class Product extends Saleable
     public function type(): ItemType
     {
         return ItemType::Product;
-    }  
+    }
+
+    public function stockDependency(): ?Saleable
+    {
+        return null;
+    }
 }

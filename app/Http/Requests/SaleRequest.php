@@ -14,7 +14,7 @@ class SaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'items' => ['array', 'min:1', 'max:200'],
+            'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*' => ['array:id,type,quantity'],
             'items.*.id' => ['required', 'integer'],
             'items.*.type' => ['required', Rule::enum(ItemType::class)],
