@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\ItemType;
+use App\Exceptions\InsufficientStockException;
+use App\Exceptions\ProductSellQuotaExceededException;
 use App\Observers\SaleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -12,13 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as SupportCollection;
 
 /**
  * @property-read string $id
  * @property Client $client
  * @property Collection<int, SaleItem> $items
- * @property Collection<int, Product> $products
- * @property Collection<int, Service> $services
  * @property Carbon $created_at
  * @property int $client_sale_num_for_day
  * @property float $total
@@ -43,16 +45,6 @@ class Sale extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
-    }
-
-    public function products(): HasMany
-    {
-        return $this->hasMany(Product::class)->withTrashed();
-    }
-    
-    public function services(): HasMany
-    {
-        return $this->hasMany(Service::class)->withTrashed();
     }  
     
     #[Scope]
@@ -71,17 +63,84 @@ class Sale extends Model
     public function forClientToday(Builder $query, Client $client): Builder
     {
         return $query
-            ->forClient($client, 'client')
+            ->forClient($client)
             ->forToday();
     } 
+
+    /**
+     * @param int[] $productIds
+     */
+    #[Scope]
+    public function havingAnyProduct(Builder $query, array $productIds): Builder
+    {
+        return $query->whereHas('items', function (Builder $query) use ($productIds) {
+            $query
+                ->where('saleable_type', ItemType::Product->className())
+                ->whereIn('saleable_id', $productIds);
+        });
+    }
+    
+    /**
+     * @param int[] $productIds
+     */    
+    #[Scope]
+    public function forClientTodayHavingAnyProduct(Builder $query, Client $client, array $productIds): Builder
+    {
+        return $query
+            ->forClient($client)
+            ->forToday()
+            ->havingAnyProduct($productIds);
+    } 
+    
+    #[Scope]
+    public function withItems(Builder $query): Builder
+    {
+        return $query->with('items');
+    }     
     
     public function associateClient(Client $client)
     {
         return $this->client()->associate($client);
     }
 
-    public function calculateTotal(): float
+    /**
+     * @param SupportCollection<int, SaleItem> $items
+     */
+    public function setItems(SupportCollection $items): self
     {
-        return $this->items->sum(fn (SaleItem $item) => $item->quantity * $item->unit_price);
+        foreach ($items as $saleItem) {
+            if ($saleItem->quantity > $saleItem->saleable->stock) {
+                throw new InsufficientStockException($saleItem->saleable);
+            }
+        }
+
+        $productIds = $items->filter(fn (SaleItem $saleItem) => $saleItem->saleable->type() === ItemType::Product)->pluck('saleable.id')->all();
+
+        $saleItemLists = Sale::query()
+            ->withItems()
+            ->forClientTodayHavingAnyProduct($this->client, $productIds)
+            ->get()
+            ->pluck('items');
+
+        foreach ($productIds as $productId) {
+            $counter = 0;
+
+            foreach ($saleItemLists as $saleItemList) {
+                if ($saleItemList->contains(fn (SaleItem $saleItem) => $saleItem->saleable->type() === ItemType::Product && $saleItem->saleable->id === $productId)) {
+                    $counter++;
+                }
+
+                if ($counter === 3) {
+                    throw new ProductSellQuotaExceededException($saleItem->saleable);
+                }
+            }
+        }
+
+        return $this->setRelation('items', $items);
+    }    
+
+    public function calculateTotal(): void
+    {
+        $this->total = $this->items->sum(fn (SaleItem $item) => $item->quantity * $item->unit_price);
     }
 }

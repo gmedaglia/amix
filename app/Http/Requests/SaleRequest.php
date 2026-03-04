@@ -2,8 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Product;
-use App\Models\Service;
+use App\Enums\ItemType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,21 +14,11 @@ class SaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'products' => [
-                'array', 
-                'max:500',
-                Rule::exists(Product::class)
-                    ->withoutTrashed()
-                    ->where('stock', '>', 0)
-            ],
-            //'products' =>
-            'services' => [
-                'array', 
-                'max:500', 
-                Rule::exists(Service::class)
-                    ->withoutTrashed()
-                    ->where('stock', '>', 0)
-            ],
+            'items' => ['array', 'min:1', 'max:200'],
+            'items.*' => ['array:id,type,quantity'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.type' => ['required', Rule::enum(ItemType::class)],
+            'items.*.quantity' => ['required', 'integer'],
         ];
     }
 }

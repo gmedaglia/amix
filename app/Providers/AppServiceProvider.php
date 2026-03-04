@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Sale;
+use App\Policies\SalePolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,5 +30,7 @@ class AppServiceProvider extends ServiceProvider
                 ->where('id', $value)
                 ->firstOrFail();
         });
+
+        Gate::define('create-sale', [SalePolicy::class, 'create']);        
     }
 }

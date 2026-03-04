@@ -18,6 +18,7 @@ class SaleItemResource extends JsonResource
     {
         return [
             'id' => $this->resource->saleable->id,
+            'type' => $this->resource->saleable->type(),
             'name' => $this->resource->saleable->name,
             'description' => $this->resource->saleable->name,
             'quantity' => $this->resource->quantity,

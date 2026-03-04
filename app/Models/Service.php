@@ -2,21 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\ItemType;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property ?Product $dependable_product
  */
 class Service extends Saleable
 {
-    use SoftDeletes;
-    use HasFactory;
-
     public function sale_item(): MorphOne
     {
         return $this->morphOne(SaleItem::class, 'saleable');
@@ -32,4 +28,9 @@ class Service extends Saleable
     {
         return $query->whereBelongsTo($product, 'dependable_product');
     }
+
+    public function type(): ItemType
+    {
+        return ItemType::Service;
+    }    
 }

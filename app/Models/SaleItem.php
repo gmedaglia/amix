@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 /**
  * @property-read int $id
  * @property-read Sale $sale
- * @property-read Product|Service $saleable
+ * @property-read Saleable $saleable
  * @property int $quantity
  * @property float $unit_price
  */

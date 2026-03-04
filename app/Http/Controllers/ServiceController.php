@@ -2,53 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ServiceRequest;
+use App\Http\Resources\ServiceResource;
+use App\Models\Product;
 use App\Models\Service;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ServiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
-        //
+        $servicePaginator = Service::query()->paginate();
+
+        return ServiceResource::collection($servicePaginator);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(ServiceRequest $request): ServiceResource
     {
         $service = new Service;
-        $service->fill($request->input());
+        $service->fill($request->validated());
+
+        $dependableProductId = $request->safe()->integer('depends_on_product_id');
+
+        if ($dependableProductId) {
+            $product = Product::query()->find($dependableProductId);
+            $service->dependable_product()->associate($product);
+        }
 
         $service->save();
 
-
+        return new ServiceResource($service);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Service $service): ServiceResource
     {
-        //
+        return new ServiceResource($service);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(ServiceRequest $request, Service $service): ServiceResource
     {
-        //
+        $service->fill($request->validated());
+
+        $dependableProductId = $request->safe()->integer('depends_on_product_id');
+
+        if ($dependableProductId) {
+            $product = Product::query()->find($dependableProductId);
+            $service->dependable_product()->associate($product);
+        }
+                
+        $service->save();
+
+        return new ServiceResource($service);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Service $service)
     {
-        //
+        $service->delete();
+
+        return response()->noContent();
     }
 }
