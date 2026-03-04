@@ -9,6 +9,6 @@ class ProductSellQuotaExceededException extends Exception
 {
     public function __construct(Product $product)
     {
-        return parent::__construct("Product {$product->name} already sold 3 times to client today.", 5000);
+        return parent::__construct("Product \"{$product->name}\" already sold 3 times to client today.", 5000);
     }
 }

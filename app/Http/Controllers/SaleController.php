@@ -27,13 +27,13 @@ class SaleController extends Controller
             $sale->calculateTotal();
 
             $sale->save();
-            $sale->items()->saveMany($saleItems);
+            $sale->saveItems($saleItems);
 
             event(new OrderEmmited($sale));
 
             return new SaleResource($sale);
         } catch (InsufficientStockException | ProductSellQuotaExceededException $e) {
-            throw new AccessDeniedHttpException($e->getMessage());
+            throw new AccessDeniedHttpException(message: $e->getMessage(), code: $e->getCode());
         }
     }
 

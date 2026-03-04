@@ -112,7 +112,15 @@ class Sale extends Model
         $this->validateItemSellQuotas($items);
 
         return $this->setRelation('items', $items);
-    }  
+    }
+
+    /**
+     * @param SupportCollection<int, SaleItem> $saleItems
+     */    
+    public function saveItems(SupportCollection $saleItems)
+    {
+        $this->items()->saveMany($saleItems);  
+    }
     
     /**
      * @param SupportCollection<int, SaleItem> $items
