@@ -14,7 +14,7 @@ class SaleItemsBuilder
     /**
      * @param Collection<int, array{id: string, type: string, quantity: integer}>> $items
      * 
-     * @return SaleItem[];
+     * @return Collection<int, SaleItem>;
      */
     public function build(array $items): Collection
     {
