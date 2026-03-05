@@ -3,36 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Events\OrderEmmited;
-use App\Exceptions\InsufficientStockException;
-use App\Exceptions\ProductSellQuotaExceededException;
+use App\Exceptions\SaleCreationException;
 use App\Http\Requests\SaleRequest;
 use App\Http\Resources\SaleResource;
 use App\Models\Client;
 use App\Models\Sale;
-use App\Services\SaleItemsBuilder;
+use App\Services\SaleCreator;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class SaleController extends Controller
 {
-    public function store(SaleRequest $request, Client $client, SaleItemsBuilder $saleItemsBuilder): SaleResource
+    public function store(SaleRequest $request, Client $client, SaleCreator $saleCreator): SaleResource
     {
         try {
-            $sale = new Sale;
-
-            $sale->associateClient($client);
-
-            $saleItems = $saleItemsBuilder->build($request->safe()->array('items'));
-
-            $sale->setItems($saleItems);
-            $sale->calculateTotal();
-
-            $sale->save();
-            $sale->saveItems($saleItems);
+            $sale = $saleCreator->create($client, $request->safe()->array('items'));
 
             event(new OrderEmmited($sale));
 
             return new SaleResource($sale);
-        } catch (InsufficientStockException | ProductSellQuotaExceededException $e) {
+        } catch (SaleCreationException $e) {
             throw new AccessDeniedHttpException(message: $e->getMessage(), code: $e->getCode());
         }
     }

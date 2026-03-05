@@ -123,8 +123,8 @@ class CreateSaleTest extends TestCase
 
         $productWithInsufficientStock = Product::factory()->create(['stock' => 3]);
 
-        $serviceOne = Service::factory()->withHighStock()->dependingOnProductStock($productWithInsufficientStock)->create();
-        $serviceTwo = Service::factory()->withHighStock()->create();
+        $serviceOne = Service::factory()->dependingOnProductStock($productWithInsufficientStock)->create();
+        $serviceTwo = Service::factory()->create();
 
         $response = $this->postJson("/api/clients/$client->id/sales", [
             'items' => [

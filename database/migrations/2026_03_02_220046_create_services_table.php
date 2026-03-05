@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('description');
             $table->float('price');
-            $table->integer('stock', false, true);            
+            $table->boolean('available');     
             $table->timestamps();
             $table->softDeletes();
         });

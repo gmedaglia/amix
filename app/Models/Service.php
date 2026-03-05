@@ -3,16 +3,29 @@
 namespace App\Models;
 
 use App\Enums\ItemType;
+use App\Exceptions\ServiceRelatedProductInsufficientStockException;
+use App\Exceptions\ServiceUnavailableException;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 /**
+ * @property bool $available
  * @property ?Product $dependable_product
  */
 class Service extends Saleable
 {
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'available' => 'boolean',
+        ];
+    }
+
     public function sale_item(): MorphOne
     {
         return $this->morphOne(SaleItem::class, 'saleable');
@@ -33,9 +46,15 @@ class Service extends Saleable
     {
         return ItemType::Service;
     }   
-    
-    public function stockDependency(): ?Saleable
+
+    public function checkAvailability(int $quantity): void
     {
-        return $this->dependable_product;
-    }       
+        if (!$this->available) {
+            throw new ServiceUnavailableException($this);
+        }
+
+        if ($this->dependable_product && $this->dependable_product->stock < $quantity) {
+            throw new ServiceRelatedProductInsufficientStockException($this);
+        }
+    }    
 }

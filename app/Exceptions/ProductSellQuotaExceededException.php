@@ -3,9 +3,8 @@
 namespace App\Exceptions;
 
 use App\Models\Product;
-use Exception;
 
-class ProductSellQuotaExceededException extends Exception
+class ProductSellQuotaExceededException extends SaleCreationException
 {
     public function __construct(Product $product)
     {

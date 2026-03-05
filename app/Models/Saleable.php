@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $name
  * @property string $description
  * @property float $price
- * @property int $stock
  */
 abstract class Saleable extends Model
 {
@@ -23,5 +22,5 @@ abstract class Saleable extends Model
 
     abstract public function type(): ItemType;
 
-    abstract public function stockDependency(): ?Saleable;
+    abstract public function checkAvailability(int $quantity): void;
 }

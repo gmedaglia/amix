@@ -21,7 +21,6 @@ abstract class SaleableResource extends JsonResource
             'name' => $this->resource->name,
             'description' => $this->resource->description,
             'price' => $this->resource->price,
-            'stock' => $this->resource->stock,
         ];
     }
 }

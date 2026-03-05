@@ -23,6 +23,5 @@ class DatabaseSeeder extends Seeder
         Product::factory()->withoutStock()->count(5)->create();
 
         Service::factory()->count(20)->create();
-        Service::factory()->withoutStock()->count(5)->create();
     }
 }

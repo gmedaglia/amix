@@ -2,13 +2,12 @@
 
 namespace App\Exceptions;
 
-use App\Models\Saleable;
-use Exception;
+use App\Models\Product;
 
-class InsufficientStockException extends Exception
+class InsufficientStockException extends SaleCreationException
 {
-    public function __construct(Saleable $saleable)
+    public function __construct(Product $product)
     {
-        return parent::__construct("Insufficient stock for item {$saleable->name}.", 4000);
+        return parent::__construct("Insufficient stock for product \"{$product->name}\".", 4000);
     }
 }

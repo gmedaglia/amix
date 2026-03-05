@@ -23,6 +23,7 @@ class SaleItemResource extends JsonResource
             'description' => $this->resource->saleable->name,
             'quantity' => $this->resource->quantity,
             'unit_price' => $this->resource->unit_price,
+            'subtotal' => $this->resource->quantity * $this->resource->unit_price,
         ];
     }
 }

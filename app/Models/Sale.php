@@ -108,7 +108,7 @@ class Sale extends Model
      */
     public function setItems(SupportCollection $items): self
     {
-        $this->validateItemStocks($items);
+        $this->validateItemAvailabilities($items);
         $this->validateItemSellQuotas($items);
 
         return $this->setRelation('items', $items);
@@ -125,23 +125,11 @@ class Sale extends Model
     /**
      * @param SupportCollection<int, SaleItem> $items
      */    
-    private function validateItemStocks(SupportCollection $items): void
+    private function validateItemAvailabilities(SupportCollection $items): void
     {
         foreach ($items as $saleItem) {
-            if (
-                $saleItem->quantity > $saleItem->saleable->stock 
-                || 
-                (
-                    $saleItem->saleable->stockDependency()
-                    &&
-                    $saleItem->quantity > $saleItem->saleable->stockDependency()->stock
-                )
-            ) {
-                throw new InsufficientStockException($saleItem->saleable);
-            }
+            $saleItem->saleable->checkAvailability($saleItem->quantity);
         }
-        
-        return;
     }
 
     /**
