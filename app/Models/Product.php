@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
  */
 class Product extends Saleable
 {
+    protected $fillable = ['name', 'description', 'price', 'stock'];
+    
     public function sale_item(): MorphOne
     {
         return $this->morphOne(SaleItem::class, 'saleable');

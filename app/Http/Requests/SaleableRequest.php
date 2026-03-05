@@ -15,7 +15,6 @@ abstract class SaleableRequest extends FormRequest
             'name' => ['required', 'string', 'min:3', 'max:100'],
             'description' => ['string', 'nullable', 'min:3', 'max:255'],
             'price' => ['required', 'numeric'],
-            'stock' => ['required', 'integer', 'min:0'],
         ];
     }
 }

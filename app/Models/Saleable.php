@@ -18,8 +18,6 @@ abstract class Saleable extends Model
     use SoftDeletes;
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'stock'];
-
     abstract public function type(): ItemType;
 
     abstract public function checkAvailability(int $quantity): void;

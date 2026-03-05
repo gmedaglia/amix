@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
  */
 class Service extends Saleable
 {
+    protected $fillable = ['name', 'description', 'price', 'available'];
+
     /**
      * @return array<string, string>
      */

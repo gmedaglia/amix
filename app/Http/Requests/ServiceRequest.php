@@ -13,6 +13,7 @@ class ServiceRequest extends SaleableRequest
     public function rules(): array
     {
         return array_merge(parent::rules(), [
+            'available' => ['required', Rule::in([true, false])],
             'depends_on_product_id' => ['nullable', Rule::exists(Product::class, 'id')->withoutTrashed()],
         ]);
     }
